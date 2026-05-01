@@ -87,6 +87,9 @@ jobs:
       - deploy-pages
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download summary artifact
         uses: actions/download-artifact@v4
         with:
