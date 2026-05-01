@@ -1,15 +1,15 @@
 {
-  "generated_at_utc": "2026-05-01T06:35:59.201817+00:00",
+  "generated_at_utc": "2026-05-01T06:44:19.790086+00:00",
   "latest_month": "2026-03",
   "latest_deposit_date": "2026-03-01",
   "latest_trade_date": "2026-03-31",
   "household_deposits_yiyuan": 1735889.52,
   "household_deposits_wanyiyuan": 173.588952,
-  "a_share_market_value_yiyuan": 1218867.83176229,
-  "a_share_market_value_wanyiyuan": 121.886783176229,
-  "deposit_market_ratio": 1.4241819127264834,
-  "ratio_mom_change": 0.10473418084272534,
-  "ratio_mom_pct_change": 0.07937728665704524,
+  "a_share_market_value_yiyuan": 1217076.19449468,
+  "a_share_market_value_wanyiyuan": 121.707619449468,
+  "deposit_market_ratio": 1.426278426816759,
+  "ratio_mom_change": 0.10466468176373867,
+  "ratio_mom_pct_change": 0.07919460746796325,
   "series_points": 126,
   "image_file": "deposit_market_ratio_trend.png"
 }
