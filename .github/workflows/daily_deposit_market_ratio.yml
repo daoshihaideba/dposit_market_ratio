@@ -7,9 +7,11 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
-  build-and-notify:
+  build-data:
     runs-on: ubuntu-latest
 
     steps:
@@ -37,12 +39,15 @@ jobs:
       - name: Build ratio chart and summary
         run: python build_deposit_market_ratio.py
 
+      - name: Prepare GitHub Pages site
+        run: python build_pages_site.py
+
       - name: Commit generated files
         id: commit_generated
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pboc_household_deposits.csv a_share_month_end_total_mv.csv deposit_market_ratio.csv deposit_market_ratio_summary.json deposit_market_ratio_trend.svg
+          git add pboc_household_deposits.csv a_share_month_end_total_mv.csv deposit_market_ratio.csv deposit_market_ratio_summary.json deposit_market_ratio_trend.png
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
@@ -51,7 +56,55 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages
+
+      - name: Upload notify artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: notify-inputs
+          path: deposit_market_ratio_summary.json
+
+  deploy-pages:
+    needs: build-data
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  notify:
+    needs:
+      - build-data
+      - deploy-pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download summary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: notify-inputs
+          path: .
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install requests
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
       - name: Push FTQQ notification
         env:
           FTQQ_SENDKEY: ${{ secrets.FTQQ_SENDKEY }}
+          PAGES_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
         run: python notify_ftqq.py

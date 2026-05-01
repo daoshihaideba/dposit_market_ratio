@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>存市比日报</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --line: #dbeafe;
+        --text: #0f172a;
+        --muted: #64748b;
+      }
+      body {
+        margin: 0;
+        font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+        background: linear-gradient(180deg, #eff6ff 0%, #fffaf5 100%);
+        color: var(--text);
+      }
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 32px 20px 56px;
+      }
+      .hero {
+        background: rgba(255,255,255,0.88);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 24px;
+        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 34px;
+      }
+      .meta {
+        margin: 0;
+        color: var(--muted);
+        font-size: 18px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 16px;
+        margin: 24px 0;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        padding: 18px 20px;
+      }
+      .label {
+        color: var(--muted);
+        font-size: 15px;
+        margin-bottom: 6px;
+      }
+      .value {
+        font-size: 28px;
+        font-weight: 700;
+      }
+      .chart {
+        margin-top: 24px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 16px;
+      }
+      img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 18px;
+      }
+      .links {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      a {
+        text-decoration: none;
+        color: #1d4ed8;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <h1>中国住户存款 / A股总市值 存市比日报</h1>
+        <p class="meta">最新月份：2026-03，股票市值取值日：2026-03-31</p>
+        <div class="grid">
+          <div class="card">
+            <div class="label">住户存款</div>
+            <div class="value">173.59 万亿元</div>
+          </div>
+          <div class="card">
+            <div class="label">A股总市值</div>
+            <div class="value">121.89 万亿元</div>
+          </div>
+          <div class="card">
+            <div class="label">存市比</div>
+            <div class="value">1.424</div>
+          </div>
+          <div class="card">
+            <div class="label">较上月变化</div>
+            <div class="value">+0.105</div>
+          </div>
+        </div>
+        <div class="chart">
+          <img src="deposit_market_ratio_trend.png" alt="存市比趋势图" />
+        </div>
+        <div class="links">
+          <a href="deposit_market_ratio_trend.png">打开趋势图 PNG</a>
+          <a href="deposit_market_ratio.csv">打开明细 CSV</a>
+          <a href="deposit_market_ratio_summary.json">打开摘要 JSON</a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

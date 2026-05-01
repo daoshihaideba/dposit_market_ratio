@@ -8,17 +8,27 @@ import requests
 
 SENDKEY_ENV_VAR = "FTQQ_SENDKEY"
 SUMMARY_JSON = os.getenv("RATIO_SUMMARY_JSON", "deposit_market_ratio_summary.json")
-SVG_PATH = os.getenv("RATIO_OUTPUT_SVG", "deposit_market_ratio_trend.svg")
+IMAGE_PATH = os.getenv("RATIO_OUTPUT_IMAGE", "deposit_market_ratio_trend.png")
 CSV_PATH = os.getenv("RATIO_OUTPUT_CSV", "deposit_market_ratio.csv")
+PAGES_BASE_URL = os.getenv("PAGES_BASE_URL", "").strip()
 
 
-def build_raw_file_url(path: str) -> str | None:
+def append_cache_buster(url: str, token: str) -> str:
+    separator = "&" if "?" in url else "?"
+    return f"{url}{separator}v={token}"
+
+
+def build_public_file_url(path: str) -> str | None:
+    normalized = quote(Path(path).as_posix())
+
+    if PAGES_BASE_URL:
+        return f"{PAGES_BASE_URL.rstrip('/')}/{normalized}"
+
     repository = os.getenv("GITHUB_REPOSITORY")
     branch = os.getenv("GITHUB_REF_NAME")
     if not repository or not branch:
         return None
 
-    normalized = quote(Path(path).as_posix())
     return f"https://raw.githubusercontent.com/{repository}/{branch}/{normalized}"
 
 
@@ -28,8 +38,13 @@ def load_summary(path: str) -> dict:
 
 
 def build_message(summary: dict) -> tuple[str, str]:
-    image_url = build_raw_file_url(SVG_PATH)
-    csv_url = build_raw_file_url(CSV_PATH)
+    cache_token = summary["generated_at_utc"].replace(":", "").replace("-", "")
+    image_url = build_public_file_url(IMAGE_PATH)
+    csv_url = build_public_file_url(CSV_PATH)
+    page_url = f"{PAGES_BASE_URL.rstrip('/')}/index.html" if PAGES_BASE_URL else None
+
+    if image_url:
+        image_url = append_cache_buster(image_url, cache_token)
 
     title = f"存市比日报 {summary['latest_month']} | {summary['deposit_market_ratio']:.3f}"
     lines = [
@@ -48,6 +63,8 @@ def build_message(summary: dict) -> tuple[str, str]:
         lines.extend(["", f"![存市比趋势图]({image_url})"])
 
     link_lines = []
+    if page_url:
+        link_lines.append(f"[打开网页版]({page_url})")
     if image_url:
         link_lines.append(f"[打开趋势图]({image_url})")
     if csv_url:

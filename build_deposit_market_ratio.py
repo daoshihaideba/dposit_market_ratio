@@ -2,16 +2,40 @@ import json
 import math
 import os
 from datetime import datetime, timezone
-from html import escape
+from pathlib import Path
 
 import pandas as pd
+from PIL import Image, ImageDraw, ImageFont
 
 
 DEPOSIT_CSV = os.getenv("PBOC_OUTPUT_CSV", "pboc_household_deposits.csv")
 MARKET_CSV = os.getenv("A_SHARE_OUTPUT_CSV", "a_share_month_end_total_mv.csv")
 OUTPUT_CSV = os.getenv("RATIO_OUTPUT_CSV", "deposit_market_ratio.csv")
-OUTPUT_SVG = os.getenv("RATIO_OUTPUT_SVG", "deposit_market_ratio_trend.svg")
+OUTPUT_IMAGE = os.getenv("RATIO_OUTPUT_IMAGE", "deposit_market_ratio_trend.png")
 OUTPUT_SUMMARY_JSON = os.getenv("RATIO_SUMMARY_JSON", "deposit_market_ratio_summary.json")
+
+FONT_CANDIDATES = (
+    "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+    "/System/Library/Fonts/Supplemental/PingFang.ttc",
+    "/Library/Fonts/Arial Unicode.ttf",
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+)
+
+
+def load_font(size: int, bold: bool = False):
+    candidates = list(FONT_CANDIDATES)
+    if bold:
+        candidates.insert(0, "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+
+    for path in candidates:
+        if Path(path).exists():
+            try:
+                return ImageFont.truetype(path, size=size)
+            except OSError:
+                continue
+
+    return ImageFont.load_default()
 
 
 def load_deposit_data(path: str) -> pd.DataFrame:
@@ -72,8 +96,8 @@ def build_ratio_dataframe(deposit_df: pd.DataFrame, market_df: pd.DataFrame) -> 
     ].copy()
 
 
-def format_wanyiyuan(value_yiyuan: float) -> str:
-    return f"{value_yiyuan / 10000:.2f}万亿元"
+def format_trillion_rmb(value_yiyuan: float) -> str:
+    return f"{value_yiyuan / 10000:.2f} tn RMB"
 
 
 def format_ratio_change(value: float) -> str:
@@ -108,124 +132,125 @@ def scale_points(values, left, top, width, height):
     return points, y_min, y_max
 
 
-def render_svg_chart(df: pd.DataFrame, output_path: str):
+def draw_text(draw, xy, text, font, fill, anchor=None):
+    draw.text(xy, text, font=font, fill=fill, anchor=anchor)
+
+
+def render_png_chart(df: pd.DataFrame, output_path: str):
     width = 1600
     height = 960
     chart_left = 120
-    chart_top = 260
+    chart_top = 270
     chart_width = 1360
-    chart_height = 520
+    chart_height = 500
+
+    image = Image.new("RGB", (width, height), "#f8fafc")
+    draw = ImageDraw.Draw(image)
+
+    # soft background bands
+    draw.rectangle((0, 0, width, 220), fill="#eef4ff")
+    draw.rectangle((0, 220, width, height), fill="#fffaf5")
+
+    font_title = load_font(40, bold=True)
+    font_subtitle = load_font(22)
+    font_card_label = load_font(20)
+    font_card_value = load_font(30, bold=True)
+    font_axis = load_font(18)
+    font_note = load_font(20)
+    font_small = load_font(18)
 
     ratios = df["deposit_market_ratio"].tolist()
     points, y_min, y_max = scale_points(ratios, chart_left, chart_top, chart_width, chart_height)
     latest = df.iloc[-1]
 
-    def y_to_svg(value):
+    def y_to_png(value):
         return chart_top + chart_height - ((value - y_min) / (y_max - y_min) * chart_height)
 
-    y_ticks = 6
-    tick_values = [y_min + (y_max - y_min) * i / y_ticks for i in range(y_ticks + 1)]
-    january_rows = df[df["month"].str.endswith("-01")]
+    def round_rect(box, radius, fill, outline=None, width_value=1):
+        draw.rounded_rectangle(box, radius=radius, fill=fill, outline=outline, width=width_value)
 
-    path_d = " ".join(
-        f"{'M' if index == 0 else 'L'} {x:.2f} {y:.2f}"
-        for index, (x, y) in enumerate(points)
-    )
-    area_d = (
-        f"M {points[0][0]:.2f} {chart_top + chart_height:.2f} "
-        + " ".join(f"L {x:.2f} {y:.2f}" for x, y in points)
-        + f" L {points[-1][0]:.2f} {chart_top + chart_height:.2f} Z"
+    draw_text(draw, (120, 56), "China Household Deposits / A-share MV Ratio", font_title, "#0f172a")
+    draw_text(
+        draw,
+        (120, 94),
+        f"Monthly series from {df.iloc[0]['month']} to {latest['month']} | refreshed daily",
+        font_subtitle,
+        "#475569",
     )
 
     cards = [
-        ("最新月份", latest["month"]),
-        ("住户存款", format_wanyiyuan(latest["household_deposits_yiyuan"])),
-        ("A股总市值", format_wanyiyuan(latest["a_share_market_value_yiyuan"])),
-        ("存市比", f"{latest['deposit_market_ratio']:.3f}"),
+        ("Latest Month", latest["month"]),
+        ("Deposits", format_trillion_rmb(latest["household_deposits_yiyuan"])),
+        ("A-share MV", format_trillion_rmb(latest["a_share_market_value_yiyuan"])),
+        ("Ratio", f"{latest['deposit_market_ratio']:.3f}"),
     ]
 
-    card_svg = []
     card_width = 310
-    card_height = 95
+    card_height = 94
     card_gap = 24
     start_x = 120
-    start_y = 90
+    start_y = 120
     for index, (label, value) in enumerate(cards):
         x = start_x + index * (card_width + card_gap)
-        card_svg.append(
-            f"""
-            <g>
-              <rect x="{x}" y="{start_y}" width="{card_width}" height="{card_height}" rx="24" fill="#ffffff" opacity="0.95" />
-              <text x="{x + 28}" y="{start_y + 36}" font-size="20" fill="#64748b">{escape(label)}</text>
-              <text x="{x + 28}" y="{start_y + 70}" font-size="32" font-weight="700" fill="#0f172a">{escape(value)}</text>
-            </g>
-            """
-        )
+        round_rect((x, start_y, x + card_width, start_y + card_height), 24, "#ffffff", "#dbeafe", 2)
+        draw_text(draw, (x + 26, start_y + 18), label, font_card_label, "#64748b")
+        draw_text(draw, (x + 26, start_y + 50), value, font_card_value, "#0f172a")
 
-    year_tick_svg = []
+    round_rect(
+        (chart_left, chart_top, chart_left + chart_width, chart_top + chart_height),
+        28,
+        "#ffffff",
+        "#dbeafe",
+        2,
+    )
+
+    y_ticks = 6
+    tick_values = [y_min + (y_max - y_min) * i / y_ticks for i in range(y_ticks + 1)]
+    for value in tick_values:
+        y = y_to_png(value)
+        draw.line((chart_left, y, chart_left + chart_width, y), fill="#d7e1ee", width=1)
+        draw_text(draw, (chart_left - 20, y), f"{value:.2f}", font_axis, "#64748b", anchor="ra")
+
+    january_rows = df[df["month"].str.endswith("-01")]
     for _, row in january_rows.iterrows():
         idx = df.index[df["month"] == row["month"]][0]
         x, _ = points[idx]
-        year_tick_svg.append(
-            f"""
-            <line x1="{x:.2f}" y1="{chart_top}" x2="{x:.2f}" y2="{chart_top + chart_height}" stroke="#dbeafe" stroke-dasharray="4 8" />
-            <text x="{x:.2f}" y="{chart_top + chart_height + 34}" text-anchor="middle" font-size="18" fill="#64748b">{escape(row["month"][:4])}</text>
-            """
-        )
+        draw.line((x, chart_top, x, chart_top + chart_height), fill="#e8eef8", width=1)
+        draw_text(draw, (x, chart_top + chart_height + 30), row["month"][:4], font_axis, "#64748b", anchor="ma")
 
-    y_tick_svg = []
-    for value in tick_values:
-        y = y_to_svg(value)
-        y_tick_svg.append(
-            f"""
-            <line x1="{chart_left}" y1="{y:.2f}" x2="{chart_left + chart_width}" y2="{y:.2f}" stroke="#cbd5e1" stroke-dasharray="4 8" />
-            <text x="{chart_left - 20}" y="{y + 6:.2f}" text-anchor="end" font-size="18" fill="#64748b">{value:.2f}</text>
-            """
-        )
+    area_points = [(points[0][0], chart_top + chart_height), *points, (points[-1][0], chart_top + chart_height)]
+    draw.polygon(area_points, fill="#dbeafe")
+    draw.line(points, fill="#2563eb", width=5, joint="curve")
 
     latest_x, latest_y = points[-1]
-    footnote = (
-        "数据口径：住户存款来自人民银行金融机构人民币信贷收支表；"
-        "A股总市值来自 Tushare daily_basic，并按每月最后一个交易日聚合。"
+    draw.ellipse((latest_x - 15, latest_y - 15, latest_x + 15, latest_y + 15), fill="#fed7aa", outline=None)
+    draw.ellipse((latest_x - 7, latest_y - 7, latest_x + 7, latest_y + 7), fill="#ea580c", outline=None)
+    draw_text(draw, (latest_x - 12, latest_y - 22), f"{latest['deposit_market_ratio']:.3f}", font_note, "#9a3412", anchor="rs")
+
+    draw_text(draw, (chart_left, chart_top - 28), "Ratio = Household Deposits / A-share MV", font_note, "#334155")
+    draw_text(
+        draw,
+        (chart_left, 835),
+        f"Latest deposit month: {latest['month']} | Market value date: {str(latest['trade_date'])[:10]}",
+        font_note,
+        "#334155",
+    )
+    draw_text(
+        draw,
+        (chart_left, 872),
+        f"MoM change: {format_ratio_change(latest['ratio_mom_change'])} | MoM %: {format_pct_change(latest['ratio_mom_pct_change'])}",
+        font_note,
+        "#334155",
+    )
+    draw_text(
+        draw,
+        (chart_left, 915),
+        "Source: PBOC RMB credit-receipts table and Tushare daily_basic month-end aggregation.",
+        font_small,
+        "#64748b",
     )
 
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
-  <defs>
-    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#eff6ff" />
-      <stop offset="100%" stop-color="#fff7ed" />
-    </linearGradient>
-    <linearGradient id="line" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0%" stop-color="#2563eb" />
-      <stop offset="100%" stop-color="#ea580c" />
-    </linearGradient>
-    <linearGradient id="area" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.28" />
-      <stop offset="100%" stop-color="#60a5fa" stop-opacity="0.02" />
-    </linearGradient>
-  </defs>
-  <rect width="100%" height="100%" fill="url(#bg)" />
-  <text x="120" y="56" font-size="42" font-weight="800" fill="#0f172a">中国住户存款 / A股总市值 存市比趋势</text>
-  <text x="120" y="92" font-size="22" fill="#475569">时间区间：{escape(df.iloc[0]['month'])} 到 {escape(latest['month'])}，每日任务自动刷新</text>
-  {''.join(card_svg)}
-  <rect x="{chart_left}" y="{chart_top}" width="{chart_width}" height="{chart_height}" rx="28" fill="#ffffff" opacity="0.82" />
-  {''.join(year_tick_svg)}
-  {''.join(y_tick_svg)}
-  <path d="{area_d}" fill="url(#area)" />
-  <path d="{path_d}" fill="none" stroke="url(#line)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-  <circle cx="{latest_x:.2f}" cy="{latest_y:.2f}" r="8" fill="#ea580c" />
-  <circle cx="{latest_x:.2f}" cy="{latest_y:.2f}" r="16" fill="#ea580c" opacity="0.18" />
-  <text x="{latest_x - 12:.2f}" y="{latest_y - 18:.2f}" text-anchor="end" font-size="20" font-weight="700" fill="#9a3412">{latest['deposit_market_ratio']:.3f}</text>
-  <text x="{chart_left}" y="{chart_top - 22}" font-size="20" fill="#334155">存市比（住户存款 / A股总市值）</text>
-  <text x="{chart_left}" y="840" font-size="22" font-weight="700" fill="#0f172a">最新说明</text>
-  <text x="{chart_left}" y="878" font-size="20" fill="#334155">住户存款月份：{escape(latest['month'])}，股票市值取值日：{escape(str(latest['trade_date'])[:10])}</text>
-  <text x="{chart_left}" y="910" font-size="20" fill="#334155">较上月变化：{format_ratio_change(latest['ratio_mom_change'])}，环比：{format_pct_change(latest['ratio_mom_pct_change'])}</text>
-  <text x="{chart_left}" y="940" font-size="18" fill="#64748b">{escape(footnote)}</text>
-</svg>
-"""
-
-    with open(output_path, "w", encoding="utf-8") as file:
-        file.write(svg)
+    image.save(output_path, format="PNG", optimize=True)
 
 
 def build_summary(df: pd.DataFrame) -> dict:
@@ -243,6 +268,7 @@ def build_summary(df: pd.DataFrame) -> dict:
         "ratio_mom_change": None if pd.isna(latest["ratio_mom_change"]) else float(latest["ratio_mom_change"]),
         "ratio_mom_pct_change": None if pd.isna(latest["ratio_mom_pct_change"]) else float(latest["ratio_mom_pct_change"]),
         "series_points": int(len(df)),
+        "image_file": OUTPUT_IMAGE,
     }
     return summary
 
@@ -256,7 +282,7 @@ def main():
         raise RuntimeError("没有可用的存市比数据，请先确认两份源 CSV 都已成功生成。")
 
     ratio_df.to_csv(OUTPUT_CSV, index=False, encoding="utf-8-sig")
-    render_svg_chart(ratio_df, OUTPUT_SVG)
+    render_png_chart(ratio_df, OUTPUT_IMAGE)
 
     summary = build_summary(ratio_df)
     with open(OUTPUT_SUMMARY_JSON, "w", encoding="utf-8") as file:
@@ -264,7 +290,7 @@ def main():
 
     print("完成，生成以下文件：")
     print(f"- {OUTPUT_CSV}")
-    print(f"- {OUTPUT_SVG}")
+    print(f"- {OUTPUT_IMAGE}")
     print(f"- {OUTPUT_SUMMARY_JSON}")
     print("\n最新存市比摘要：")
     print(json.dumps(summary, ensure_ascii=False, indent=2))
