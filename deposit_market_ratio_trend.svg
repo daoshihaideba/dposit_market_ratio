@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="960" viewBox="0 0 1600 960">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#eff6ff" />
+      <stop offset="100%" stop-color="#fff7ed" />
+    </linearGradient>
+    <linearGradient id="line" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#ea580c" />
+    </linearGradient>
+    <linearGradient id="area" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.28" />
+      <stop offset="100%" stop-color="#60a5fa" stop-opacity="0.02" />
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bg)" />
+  <text x="120" y="56" font-size="42" font-weight="800" fill="#0f172a">中国住户存款 / A股总市值 存市比趋势</text>
+  <text x="120" y="92" font-size="22" fill="#475569">时间区间：2015-01 到 2026-03，每日任务自动刷新</text>
+  
+            <g>
+              <rect x="120" y="90" width="310" height="95" rx="24" fill="#ffffff" opacity="0.95" />
+              <text x="148" y="126" font-size="20" fill="#64748b">最新月份</text>
+              <text x="148" y="160" font-size="32" font-weight="700" fill="#0f172a">2026-03</text>
+            </g>
+            
+            <g>
+              <rect x="454" y="90" width="310" height="95" rx="24" fill="#ffffff" opacity="0.95" />
+              <text x="482" y="126" font-size="20" fill="#64748b">住户存款</text>
+              <text x="482" y="160" font-size="32" font-weight="700" fill="#0f172a">173.59万亿元</text>
+            </g>
+            
+            <g>
+              <rect x="788" y="90" width="310" height="95" rx="24" fill="#ffffff" opacity="0.95" />
+              <text x="816" y="126" font-size="20" fill="#64748b">A股总市值</text>
+              <text x="816" y="160" font-size="32" font-weight="700" fill="#0f172a">121.89万亿元</text>
+            </g>
+            
+            <g>
+              <rect x="1122" y="90" width="310" height="95" rx="24" fill="#ffffff" opacity="0.95" />
+              <text x="1150" y="126" font-size="20" fill="#64748b">存市比</text>
+              <text x="1150" y="160" font-size="32" font-weight="700" fill="#0f172a">1.424</text>
+            </g>
+            
+  <rect x="120" y="260" width="1360" height="520" rx="28" fill="#ffffff" opacity="0.82" />
+  
+            <line x1="120.00" y1="260" x2="120.00" y2="780" stroke="#dbeafe" stroke-dasharray="4 8" />
+            <text x="120.00" y="814" text-anchor="middle" font-size="18" fill="#64748b">2015</text>
+            
+            <line x1="239.68" y1="260" x2="239.68" y2="780" stroke="#dbeafe" stroke-dasharray="4 8" />
+            <text x="239.68" y="814" text-anchor="middle" font-size="18" fill="#64748b">2016</text>
+            
+            <line x1="359.36" y1="260" x2="359.36" y2="780" stroke="#dbeafe" stroke-dasharray="4 8" />
+            <text x="359.36" y="814" text-anchor="middle" font-size="18" fill="#64748b">2017</text>
+            
+            <line x1="479.04" y1="260" x2="479.04" y2="780" stroke="#dbeafe" stroke-dasharray="4 8" />
+            <text x="479.04" y="814" text-anchor="middle" font-size="18" fill="#64748b">2018</text>
+            
+            <line x1="598.72" y1="260" x2="598.72" y2="780" stroke="#dbeafe" stroke-dasharray="4 8" />
+            <text x="598.72" y="814" text-anchor="middle" font-size="18" fill="#64748b">2019</text>
+            
+            <line x1="729.28" y1="260" x2="729.28" y2="780" stroke="#dbeafe" stroke-dasharray="4 8" />
+            <text x="729.28" y="814" text-anchor="middle" font-size="18" fill="#64748b">2020</text>
+            
+            <line x1="848.96" y1="260" x2="848.96" y2="780" stroke="#dbeafe" stroke-dasharray="4 8" />
+            <text x="848.96" y="814" text-anchor="middle" font-size="18" fill="#64748b">2021</text>
+            
+            <line x1="968.64" y1="260" x2="968.64" y2="780" stroke="#dbeafe" stroke-dasharray="4 8" />
+            <text x="968.64" y="814" text-anchor="middle" font-size="18" fill="#64748b">2022</text>
+            
+            <line x1="1099.20" y1="260" x2="1099.20" y2="780" stroke="#dbeafe" stroke-dasharray="4 8" />
+            <text x="1099.20" y="814" text-anchor="middle" font-size="18" fill="#64748b">2023</text>
+            
+            <line x1="1218.88" y1="260" x2="1218.88" y2="780" stroke="#dbeafe" stroke-dasharray="4 8" />
+            <text x="1218.88" y="814" text-anchor="middle" font-size="18" fill="#64748b">2024</text>
+            
+            <line x1="1338.56" y1="260" x2="1338.56" y2="780" stroke="#dbeafe" stroke-dasharray="4 8" />
+            <text x="1338.56" y="814" text-anchor="middle" font-size="18" fill="#64748b">2025</text>
+            
+            <line x1="1458.24" y1="260" x2="1458.24" y2="780" stroke="#dbeafe" stroke-dasharray="4 8" />
+            <text x="1458.24" y="814" text-anchor="middle" font-size="18" fill="#64748b">2026</text>
+            
+  
+            <line x1="120" y1="780.00" x2="1480" y2="780.00" stroke="#cbd5e1" stroke-dasharray="4 8" />
+            <text x="100" y="786.00" text-anchor="end" font-size="18" fill="#64748b">0.78</text>
+            
+            <line x1="120" y1="693.33" x2="1480" y2="693.33" stroke="#cbd5e1" stroke-dasharray="4 8" />
+            <text x="100" y="699.33" text-anchor="end" font-size="18" fill="#64748b">0.98</text>
+            
+            <line x1="120" y1="606.67" x2="1480" y2="606.67" stroke="#cbd5e1" stroke-dasharray="4 8" />
+            <text x="100" y="612.67" text-anchor="end" font-size="18" fill="#64748b">1.18</text>
+            
+            <line x1="120" y1="520.00" x2="1480" y2="520.00" stroke="#cbd5e1" stroke-dasharray="4 8" />
+            <text x="100" y="526.00" text-anchor="end" font-size="18" fill="#64748b">1.38</text>
+            
+            <line x1="120" y1="433.33" x2="1480" y2="433.33" stroke="#cbd5e1" stroke-dasharray="4 8" />
+            <text x="100" y="439.33" text-anchor="end" font-size="18" fill="#64748b">1.58</text>
+            
+            <line x1="120" y1="346.67" x2="1480" y2="346.67" stroke="#cbd5e1" stroke-dasharray="4 8" />
+            <text x="100" y="352.67" text-anchor="end" font-size="18" fill="#64748b">1.78</text>
+            
+            <line x1="120" y1="260.00" x2="1480" y2="260.00" stroke="#cbd5e1" stroke-dasharray="4 8" />
+            <text x="100" y="266.00" text-anchor="end" font-size="18" fill="#64748b">1.98</text>
+            
+  <path d="M 120.00 780.00 L 120.00 560.46 L 130.88 563.37 L 141.76 622.90 L 152.64 710.17 L 163.52 736.67 L 174.40 696.54 L 185.28 623.48 L 196.16 535.72 L 207.04 513.98 L 217.92 637.14 L 228.80 661.32 L 239.68 502.39 L 250.56 459.22 L 261.44 542.70 L 272.32 542.10 L 283.20 550.40 L 294.08 559.51 L 304.96 568.66 L 315.84 597.31 L 326.72 576.32 L 337.60 627.78 L 348.48 602.80 L 359.36 589.86 L 370.24 608.68 L 381.12 606.36 L 392.00 601.29 L 402.88 592.65 L 413.76 597.06 L 424.64 615.77 L 435.52 635.27 L 446.40 638.14 L 457.28 640.92 L 468.16 639.24 L 479.04 652.47 L 489.92 605.98 L 500.80 597.88 L 511.68 591.75 L 522.56 591.08 L 533.44 543.01 L 544.32 555.90 L 555.20 525.31 L 566.08 528.76 L 576.96 493.51 L 587.84 455.82 L 598.72 450.08 L 609.60 529.77 L 620.48 558.89 L 631.36 560.08 L 642.24 525.57 L 653.12 534.74 L 664.00 539.56 L 674.88 535.57 L 685.76 530.08 L 696.64 542.96 L 707.52 535.13 L 718.40 569.18 L 729.28 543.09 L 740.16 540.60 L 751.04 489.06 L 761.92 526.14 L 772.80 528.04 L 783.68 556.15 L 794.56 628.50 L 805.44 640.37 L 816.32 604.12 L 827.20 642.74 L 838.08 648.92 L 848.96 644.54 L 859.84 628.91 L 870.72 607.69 L 881.60 626.64 L 892.48 654.01 L 903.36 648.92 L 914.24 635.30 L 925.12 654.30 L 936.00 644.63 L 946.88 658.50 L 957.76 662.82 L 968.64 603.83 L 979.52 620.32 L 990.40 573.07 L 1001.28 536.04 L 1012.16 562.85 L 1023.04 592.12 L 1033.92 576.99 L 1044.80 565.63 L 1055.68 517.87 L 1066.56 503.91 L 1077.44 540.47 L 1088.32 515.73 L 1099.20 525.17 L 1110.08 526.43 L 1120.96 515.07 L 1131.84 526.77 L 1142.72 506.15 L 1153.60 497.25 L 1164.48 514.87 L 1175.36 482.73 L 1186.24 465.95 L 1197.12 450.91 L 1208.00 431.71 L 1218.88 303.33 L 1229.76 395.87 L 1240.64 393.53 L 1251.52 413.07 L 1262.40 405.14 L 1273.28 365.15 L 1284.16 357.96 L 1295.04 329.37 L 1305.92 445.75 L 1316.80 454.03 L 1327.68 447.04 L 1338.56 377.73 L 1349.44 423.81 L 1360.32 413.33 L 1371.20 402.34 L 1382.08 414.18 L 1392.96 440.16 L 1403.84 465.71 L 1414.72 518.03 L 1425.60 517.76 L 1436.48 519.01 L 1447.36 527.41 L 1458.24 547.27 L 1469.12 546.00 L 1480.00 500.41 L 1480.00 780.00 Z" fill="url(#area)" />
+  <path d="M 120.00 560.46 L 130.88 563.37 L 141.76 622.90 L 152.64 710.17 L 163.52 736.67 L 174.40 696.54 L 185.28 623.48 L 196.16 535.72 L 207.04 513.98 L 217.92 637.14 L 228.80 661.32 L 239.68 502.39 L 250.56 459.22 L 261.44 542.70 L 272.32 542.10 L 283.20 550.40 L 294.08 559.51 L 304.96 568.66 L 315.84 597.31 L 326.72 576.32 L 337.60 627.78 L 348.48 602.80 L 359.36 589.86 L 370.24 608.68 L 381.12 606.36 L 392.00 601.29 L 402.88 592.65 L 413.76 597.06 L 424.64 615.77 L 435.52 635.27 L 446.40 638.14 L 457.28 640.92 L 468.16 639.24 L 479.04 652.47 L 489.92 605.98 L 500.80 597.88 L 511.68 591.75 L 522.56 591.08 L 533.44 543.01 L 544.32 555.90 L 555.20 525.31 L 566.08 528.76 L 576.96 493.51 L 587.84 455.82 L 598.72 450.08 L 609.60 529.77 L 620.48 558.89 L 631.36 560.08 L 642.24 525.57 L 653.12 534.74 L 664.00 539.56 L 674.88 535.57 L 685.76 530.08 L 696.64 542.96 L 707.52 535.13 L 718.40 569.18 L 729.28 543.09 L 740.16 540.60 L 751.04 489.06 L 761.92 526.14 L 772.80 528.04 L 783.68 556.15 L 794.56 628.50 L 805.44 640.37 L 816.32 604.12 L 827.20 642.74 L 838.08 648.92 L 848.96 644.54 L 859.84 628.91 L 870.72 607.69 L 881.60 626.64 L 892.48 654.01 L 903.36 648.92 L 914.24 635.30 L 925.12 654.30 L 936.00 644.63 L 946.88 658.50 L 957.76 662.82 L 968.64 603.83 L 979.52 620.32 L 990.40 573.07 L 1001.28 536.04 L 1012.16 562.85 L 1023.04 592.12 L 1033.92 576.99 L 1044.80 565.63 L 1055.68 517.87 L 1066.56 503.91 L 1077.44 540.47 L 1088.32 515.73 L 1099.20 525.17 L 1110.08 526.43 L 1120.96 515.07 L 1131.84 526.77 L 1142.72 506.15 L 1153.60 497.25 L 1164.48 514.87 L 1175.36 482.73 L 1186.24 465.95 L 1197.12 450.91 L 1208.00 431.71 L 1218.88 303.33 L 1229.76 395.87 L 1240.64 393.53 L 1251.52 413.07 L 1262.40 405.14 L 1273.28 365.15 L 1284.16 357.96 L 1295.04 329.37 L 1305.92 445.75 L 1316.80 454.03 L 1327.68 447.04 L 1338.56 377.73 L 1349.44 423.81 L 1360.32 413.33 L 1371.20 402.34 L 1382.08 414.18 L 1392.96 440.16 L 1403.84 465.71 L 1414.72 518.03 L 1425.60 517.76 L 1436.48 519.01 L 1447.36 527.41 L 1458.24 547.27 L 1469.12 546.00 L 1480.00 500.41" fill="none" stroke="url(#line)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="1480.00" cy="500.41" r="8" fill="#ea580c" />
+  <circle cx="1480.00" cy="500.41" r="16" fill="#ea580c" opacity="0.18" />
+  <text x="1468.00" y="482.41" text-anchor="end" font-size="20" font-weight="700" fill="#9a3412">1.424</text>
+  <text x="120" y="238" font-size="20" fill="#334155">存市比（住户存款 / A股总市值）</text>
+  <text x="120" y="840" font-size="22" font-weight="700" fill="#0f172a">最新说明</text>
+  <text x="120" y="878" font-size="20" fill="#334155">住户存款月份：2026-03，股票市值取值日：2026-03-31</text>
+  <text x="120" y="910" font-size="20" fill="#334155">较上月变化：+0.105，环比：+7.94%</text>
+  <text x="120" y="940" font-size="18" fill="#64748b">数据口径：住户存款来自人民银行金融机构人民币信贷收支表；A股总市值来自 Tushare daily_basic，并按每月最后一个交易日聚合。</text>
+</svg>

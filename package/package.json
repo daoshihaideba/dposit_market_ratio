@@ -1,0 +1,71 @@
+{
+  "name": "nexus-mcp-server",
+  "version": "1.0.2",
+  "description": "Nexus — Enterprise MCP server connecting AI tools to Jira, Confluence, SharePoint, SAP, and more via browser SSO",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "nexus-mcp-server": "./dist/index.js",
+    "nexus": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && mkdir -p dist/browser/certs && cp src/browser/certs/*.pem dist/browser/certs/",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run --exclude='src/__tests__/connector-all-e2e.test.ts'",
+    "test:e2e": "sh -c 'if [ \"$(uname)\" = \"Darwin\" ]; then security find-certificate -a -p /Library/Keychains/System.keychain > /tmp/nexus-system-cas.pem 2>/dev/null; export NODE_EXTRA_CA_CERTS=/tmp/nexus-system-cas.pem; fi && vitest run src/__tests__/connector-all-e2e.test.ts --test-timeout 180000'",
+    "test:watch": "vitest",
+    "release": "node scripts/release.mjs"
+  },
+  "dependencies": {
+    "@inquirer/checkbox": "5.1.2",
+    "@inquirer/confirm": "6.0.10",
+    "@inquirer/select": "5.1.2",
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@mozilla/readability": "0.6.0",
+    "commander": "14.0.3",
+    "jsdom": "28.1.0",
+    "playwright": "1.58.2",
+    "turndown": "7.2.2",
+    "yaml": "2.8.3",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/jsdom": "28.0.1",
+    "@types/node": "22.19.15",
+    "@types/turndown": "5.0.6",
+    "eslint": "10.1.0",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.57.2",
+    "vitest": "3.2.4"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "enterprise",
+    "jira",
+    "confluence",
+    "sharepoint",
+    "sap",
+    "claude",
+    "nexus"
+  ],
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}

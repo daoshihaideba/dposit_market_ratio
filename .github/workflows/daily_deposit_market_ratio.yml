@@ -1,0 +1,57 @@
+name: Daily Deposit Market Ratio
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "10 1 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Fetch household deposits
+        run: python getDepositsofhouse.py
+
+      - name: Fetch A-share market value
+        env:
+          TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
+        run: python china-stock-market.py
+
+      - name: Build ratio chart and summary
+        run: python build_deposit_market_ratio.py
+
+      - name: Commit generated files
+        id: commit_generated
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pboc_household_deposits.csv a_share_month_end_total_mv.csv deposit_market_ratio.csv deposit_market_ratio_summary.json deposit_market_ratio_trend.svg
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "chore: update deposit market ratio data"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push FTQQ notification
+        env:
+          FTQQ_SENDKEY: ${{ secrets.FTQQ_SENDKEY }}
+        run: python notify_ftqq.py
