@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>存市比日报</title>
+    <title>存市比与M1-M2剪刀差日报</title>
     <style>
       :root {
         color-scheme: light;
@@ -90,24 +90,40 @@
   <body>
     <main>
       <section class="hero">
-        <h1>中国住户存款 / A股总市值 存市比日报</h1>
-        <p class="meta">最新月份：2026-03，股票市值取值日：2026-03-31</p>
+        <h1>中国住户存款 / A股总市值 存市比 + M1-M2剪刀差日报</h1>
+        <p class="meta">最新存市比月份：2026-04，最新货币数据月份：2026-04</p>
         <div class="grid">
           <div class="card">
             <div class="label">住户存款</div>
-            <div class="value">173.59 万亿元</div>
+            <div class="value">171.65 万亿元</div>
           </div>
           <div class="card">
             <div class="label">A股总市值</div>
-            <div class="value">121.89 万亿元</div>
+            <div class="value">130.52 万亿元</div>
           </div>
           <div class="card">
             <div class="label">存市比</div>
-            <div class="value">1.424</div>
+            <div class="value">1.315</div>
           </div>
           <div class="card">
             <div class="label">较上月变化</div>
-            <div class="value">+0.105</div>
+            <div class="value">-0.111</div>
+          </div>
+          <div class="card">
+            <div class="label">M1-M2 剪刀差</div>
+            <div class="value">-3.58 pct</div>
+          </div>
+          <div class="card">
+            <div class="label">M1 / M2 同比</div>
+            <div class="value">+4.99% / +8.57%</div>
+          </div>
+          <div class="card">
+            <div class="label">制造业 PMI</div>
+            <div class="value">50.0</div>
+          </div>
+          <div class="card">
+            <div class="label">社融增量</div>
+            <div class="value">0.62 万亿元</div>
           </div>
         </div>
         <div class="chart">
@@ -116,6 +132,11 @@
         <div class="links">
           <a href="deposit_market_ratio_trend.png">打开趋势图 PNG</a>
           <a href="deposit_market_ratio.csv">打开明细 CSV</a>
+          <a href="pboc_money_supply.csv">打开货币供应量 CSV</a>
+          <a href="china_manufacturing_pmi.csv">打开 PMI CSV</a>
+          <a href="pboc_social_financing_flow.csv">打开社融 CSV</a>
+          <a href="m1_m2_unified_gap_since_2025.png">打开 M1-M2 可比同比剪刀差图</a>
+          <a href="m1_m2_unified_gap_since_2025.csv">打开 M1-M2 可比同比剪刀差 CSV</a>
           <a href="deposit_market_ratio_summary.json">打开摘要 JSON</a>
         </div>
       </section>

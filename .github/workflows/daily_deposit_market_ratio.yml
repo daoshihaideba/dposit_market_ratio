@@ -39,6 +39,9 @@ jobs:
       - name: Build ratio chart and summary
         run: python build_deposit_market_ratio.py
 
+      - name: Build unified M1-M2 chart
+        run: python build_m1_m2_unified_chart.py
+
       - name: Prepare GitHub Pages site
         run: python build_pages_site.py
 
@@ -47,7 +50,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pboc_household_deposits.csv a_share_month_end_total_mv.csv deposit_market_ratio.csv deposit_market_ratio_summary.json deposit_market_ratio_trend.png
+          git add pboc_household_deposits.csv pboc_money_supply.csv pboc_social_financing_flow.csv china_manufacturing_pmi.csv a_share_month_end_total_mv.csv deposit_market_ratio.csv deposit_market_ratio_summary.json deposit_market_ratio_trend.png m1_m2_unified_gap_since_2025.csv m1_m2_unified_gap_since_2025.png m1_m2_unified_gap_summary.json
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else

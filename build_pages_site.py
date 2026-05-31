@@ -8,6 +8,12 @@ OUTPUT_DIR = Path(os.getenv("PAGES_OUTPUT_DIR", "pages"))
 SUMMARY_JSON = Path(os.getenv("RATIO_SUMMARY_JSON", "deposit_market_ratio_summary.json"))
 IMAGE_PATH = Path(os.getenv("RATIO_OUTPUT_IMAGE", "deposit_market_ratio_trend.png"))
 CSV_PATH = Path(os.getenv("RATIO_OUTPUT_CSV", "deposit_market_ratio.csv"))
+MONEY_SUPPLY_CSV = Path(os.getenv("MONEY_SUPPLY_OUTPUT_CSV", "pboc_money_supply.csv"))
+PMI_CSV = Path(os.getenv("PMI_OUTPUT_CSV", "china_manufacturing_pmi.csv"))
+SOCIAL_FINANCING_CSV = Path(os.getenv("SOCIAL_FINANCING_OUTPUT_CSV", "pboc_social_financing_flow.csv"))
+UNIFIED_CSV = Path(os.getenv("M1_M2_UNIFIED_OUTPUT_CSV", "m1_m2_unified_gap_since_2025.csv"))
+UNIFIED_IMAGE = Path(os.getenv("M1_M2_UNIFIED_OUTPUT_IMAGE", "m1_m2_unified_gap_since_2025.png"))
+UNIFIED_SUMMARY_JSON = Path(os.getenv("M1_M2_UNIFIED_SUMMARY_JSON", "m1_m2_unified_gap_summary.json"))
 
 
 def load_summary(path: Path) -> dict:
@@ -20,12 +26,14 @@ def write_index_html(summary: dict):
     if summary["ratio_mom_change"] is not None:
         mom_change_text = f"{summary['ratio_mom_change']:+.3f}"
 
+    gap_text = f"{summary['m1_m2_growth_gap_pct']:+.2f} pct"
+
     html = f"""<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>存市比日报</title>
+    <title>存市比与M1-M2剪刀差日报</title>
     <style>
       :root {{
         color-scheme: light;
@@ -112,8 +120,8 @@ def write_index_html(summary: dict):
   <body>
     <main>
       <section class="hero">
-        <h1>中国住户存款 / A股总市值 存市比日报</h1>
-        <p class="meta">最新月份：{summary["latest_month"]}，股票市值取值日：{summary["latest_trade_date"]}</p>
+        <h1>中国住户存款 / A股总市值 存市比 + M1-M2剪刀差日报</h1>
+        <p class="meta">最新存市比月份：{summary["latest_month"]}，最新货币数据月份：{summary["latest_money_supply_month"]}</p>
         <div class="grid">
           <div class="card">
             <div class="label">住户存款</div>
@@ -131,6 +139,22 @@ def write_index_html(summary: dict):
             <div class="label">较上月变化</div>
             <div class="value">{mom_change_text}</div>
           </div>
+          <div class="card">
+            <div class="label">M1-M2 剪刀差</div>
+            <div class="value">{gap_text}</div>
+          </div>
+          <div class="card">
+            <div class="label">M1 / M2 同比</div>
+            <div class="value">{summary["m1_yoy_pct"]:+.2f}% / {summary["m2_yoy_pct"]:+.2f}%</div>
+          </div>
+          <div class="card">
+            <div class="label">制造业 PMI</div>
+            <div class="value">{summary["manufacturing_pmi"]:.1f}</div>
+          </div>
+          <div class="card">
+            <div class="label">社融增量</div>
+            <div class="value">{summary["afre_flow_wanyiyuan"]:.2f} 万亿元</div>
+          </div>
         </div>
         <div class="chart">
           <img src="{IMAGE_PATH.name}" alt="存市比趋势图" />
@@ -138,6 +162,11 @@ def write_index_html(summary: dict):
         <div class="links">
           <a href="{IMAGE_PATH.name}">打开趋势图 PNG</a>
           <a href="{CSV_PATH.name}">打开明细 CSV</a>
+          <a href="{MONEY_SUPPLY_CSV.name}">打开货币供应量 CSV</a>
+          <a href="{PMI_CSV.name}">打开 PMI CSV</a>
+          <a href="{SOCIAL_FINANCING_CSV.name}">打开社融 CSV</a>
+          <a href="{UNIFIED_IMAGE.name}">打开 M1-M2 可比同比剪刀差图</a>
+          <a href="{UNIFIED_CSV.name}">打开 M1-M2 可比同比剪刀差 CSV</a>
           <a href="{SUMMARY_JSON.name}">打开摘要 JSON</a>
         </div>
       </section>
@@ -154,6 +183,12 @@ def main():
 
     shutil.copy2(IMAGE_PATH, OUTPUT_DIR / IMAGE_PATH.name)
     shutil.copy2(CSV_PATH, OUTPUT_DIR / CSV_PATH.name)
+    shutil.copy2(MONEY_SUPPLY_CSV, OUTPUT_DIR / MONEY_SUPPLY_CSV.name)
+    shutil.copy2(PMI_CSV, OUTPUT_DIR / PMI_CSV.name)
+    shutil.copy2(SOCIAL_FINANCING_CSV, OUTPUT_DIR / SOCIAL_FINANCING_CSV.name)
+    shutil.copy2(UNIFIED_CSV, OUTPUT_DIR / UNIFIED_CSV.name)
+    shutil.copy2(UNIFIED_IMAGE, OUTPUT_DIR / UNIFIED_IMAGE.name)
+    shutil.copy2(UNIFIED_SUMMARY_JSON, OUTPUT_DIR / UNIFIED_SUMMARY_JSON.name)
     shutil.copy2(SUMMARY_JSON, OUTPUT_DIR / SUMMARY_JSON.name)
     (OUTPUT_DIR / ".nojekyll").write_text("", encoding="utf-8")
     write_index_html(summary)

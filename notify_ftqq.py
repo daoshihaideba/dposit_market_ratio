@@ -46,7 +46,7 @@ def build_message(summary: dict) -> tuple[str, str]:
     if image_url:
         image_url = append_cache_buster(image_url, cache_token)
 
-    title = f"存市比日报 {summary['latest_month']} | {summary['deposit_market_ratio']:.3f}"
+    title = f"存市比/剪刀差日报 {summary['latest_month']} | {summary['deposit_market_ratio']:.3f}"
     lines = [
         "# 中国住户存款 / A股总市值 存市比日报",
         "",
@@ -57,6 +57,11 @@ def build_message(summary: dict) -> tuple[str, str]:
         f"- 较上月变化: {summary['ratio_mom_change']:+.3f}" if summary["ratio_mom_change"] is not None else "- 较上月变化: N/A",
         f"- 环比: {summary['ratio_mom_pct_change']:+.2%}" if summary["ratio_mom_pct_change"] is not None else "- 环比: N/A",
         f"- 股票市值取值日: {summary['latest_trade_date']}",
+        f"- M1同比: {summary['m1_yoy_pct']:+.2f}%",
+        f"- M2同比: {summary['m2_yoy_pct']:+.2f}%",
+        f"- M1-M2剪刀差: {summary['m1_m2_growth_gap_pct']:+.2f} 个百分点",
+        f"- 制造业PMI: {summary['manufacturing_pmi']:.1f}",
+        f"- 社融增量: {summary['afre_flow_wanyiyuan']:.2f} 万亿元",
     ]
 
     if image_url:
