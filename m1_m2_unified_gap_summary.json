@@ -1,15 +1,15 @@
 {
-  "generated_at_utc": "2026-07-15T04:19:44.390235+00:00",
+  "generated_at_utc": "2026-07-17T14:34:20.992142+00:00",
   "start_month": "2024-05",
-  "latest_month": "2026-05",
-  "latest_date": "2026-05-01",
-  "m1_yoy_pct": 5.485368306124516,
-  "m2_yoy_pct": 8.559382037556196,
-  "m1_m2_growth_gap_pct": -3.07401373143168,
+  "latest_month": "2026-06",
+  "latest_date": "2026-06-01",
+  "m1_yoy_pct": 3.973820557277485,
+  "m2_yoy_pct": 8.000327182298662,
+  "m1_m2_growth_gap_pct": -4.0265066250211765,
   "lowest_month": "2024-09",
   "lowest_gap_pct": -14.24060003804628,
   "highest_month": "2025-09",
   "highest_gap_pct": -1.1627390103725164,
-  "points": 25,
+  "points": 26,
   "image_file": "m1_m2_unified_gap_since_2025.png"
 }
