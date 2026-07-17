@@ -39,6 +39,7 @@ PMI_BOOTSTRAP_URL = os.getenv(
     "https://www.stats.gov.cn/sj/zxfb/202506/t20250630_1960283.html",
 )
 PMI_LOOKBACK_MONTHS = int(os.getenv("PMI_LOOKBACK_MONTHS", "24"))
+PMI_RELEASE_LIST_PAGES = int(os.getenv("PMI_RELEASE_LIST_PAGES", "6"))
 
 HEADERS = {
     "User-Agent": (
@@ -231,6 +232,24 @@ def parse_year_month_label(text: str):
     if match:
         return int(match.group(1)), int(match.group(2))
     return None
+
+
+def iter_pmi_release_list_urls():
+    yield PMI_RELEASE_LIST_URL
+
+    if PMI_RELEASE_LIST_PAGES <= 1:
+        return
+
+    list_url = PMI_RELEASE_LIST_URL.split("#", 1)[0].split("?", 1)[0]
+    if list_url.endswith("index.html"):
+        base_url = list_url[: -len("index.html")]
+    elif list_url.endswith("/"):
+        base_url = list_url
+    else:
+        base_url = list_url + "/"
+
+    for page_index in range(1, PMI_RELEASE_LIST_PAGES):
+        yield urljoin(base_url, f"index_{page_index}.html")
 
 
 def extract_household_deposit_from_df(df: pd.DataFrame, fallback_year: int):
@@ -776,19 +795,35 @@ def fetch_social_financing_records():
 
 
 def fetch_latest_pmi_release_url():
-    soup = get_soup(PMI_RELEASE_LIST_URL)
     candidates = []
-    for anchor in soup.find_all("a", href=True):
-        text = " ".join(anchor.get_text(" ", strip=True).split())
-        if "中国采购经理指数运行情况" not in text:
+    errors = []
+    scanned_urls = list(dict.fromkeys(iter_pmi_release_list_urls()))
+
+    for list_url in scanned_urls:
+        try:
+            soup = get_soup(list_url)
+        except Exception as exc:
+            errors.append(f"{list_url}: {exc}")
             continue
-        href = urljoin(PMI_RELEASE_LIST_URL, anchor["href"])
-        month_info = parse_year_month_label(text)
-        if month_info:
-            candidates.append((month_info[0], month_info[1], href, text))
+
+        for anchor in soup.find_all("a", href=True):
+            text = anchor.get("title") or anchor.get_text(" ", strip=True)
+            text = " ".join(str(text).split())
+            if "中国采购经理指数运行情况" not in text:
+                continue
+
+            href = urljoin(list_url, anchor["href"])
+            month_info = parse_year_month_label(text)
+            if month_info:
+                candidates.append((month_info[0], month_info[1], href, text))
 
     if not candidates:
-        raise RuntimeError("未在统计局发布列表中找到 PMI 月报链接")
+        message = "未在统计局发布列表中找到 PMI 月报链接"
+        if scanned_urls:
+            message += "，已扫描: " + ", ".join(scanned_urls)
+        if errors:
+            message += "；部分页面读取失败: " + " | ".join(errors)
+        raise RuntimeError(message)
 
     candidates.sort()
     _, _, href, _ = candidates[-1]
@@ -832,7 +867,16 @@ def extract_pmi_records_from_url(url: str):
 
 
 def fetch_pmi_records():
-    urls = [fetch_latest_pmi_release_url(), PMI_BOOTSTRAP_URL]
+    urls = []
+    try:
+        urls.append(fetch_latest_pmi_release_url())
+    except Exception as exc:
+        print(f"\nPMI 最新发布链接查找失败，将继续使用备用链接和历史数据: {exc}")
+
+    if PMI_BOOTSTRAP_URL:
+        urls.append(PMI_BOOTSTRAP_URL)
+    urls = list(dict.fromkeys(urls))
+
     records = []
     for url in urls:
         try:
