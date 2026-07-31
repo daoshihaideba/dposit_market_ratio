@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-07-30T04:20:54.987996+00:00",
+  "generated_at_utc": "2026-07-31T04:40:12.658207+00:00",
   "latest_month": "2026-06",
   "latest_deposit_date": "2026-06-01",
   "latest_trade_date": "2026-06-30",
@@ -17,14 +17,14 @@
   "m1_yoy_pct": 3.973820557277485,
   "m2_yoy_pct": 8.000327182298662,
   "m1_m2_growth_gap_pct": -4.0265066250211765,
-  "latest_pmi_month": "2026-06",
-  "latest_pmi_date": "2026-06-01",
-  "manufacturing_pmi": 50.3,
+  "latest_pmi_month": "2026-07",
+  "latest_pmi_date": "2026-07-01",
+  "manufacturing_pmi": 49.2,
   "latest_social_financing_month": "2026-06",
   "latest_social_financing_date": "2026-06-01",
   "afre_flow_yiyuan": 33645.0,
   "afre_flow_wanyiyuan": 3.3645,
-  "macro_display_start": "2024-07",
+  "macro_display_start": "2024-08",
   "series_points": 138,
   "image_file": "deposit_market_ratio_trend.png"
 }
