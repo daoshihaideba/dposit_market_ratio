@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-20T02:25:31.748821+00:00",
+  "generated_at_utc": "2026-08-21T02:39:40.653019+00:00",
   "latest_month": "2026-07",
   "latest_deposit_date": "2026-07-01",
   "latest_trade_date": "2026-07-31",
@@ -25,6 +25,6 @@
   "afre_flow_yiyuan": 14017.0,
   "afre_flow_wanyiyuan": 1.4017,
   "macro_display_start": "2024-08",
-  "series_points": 111,
+  "series_points": 139,
   "image_file": "deposit_market_ratio_trend.png"
 }
