@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-10-22T06:10:17.223771+00:00",
+  "generated_at_utc": "2026-10-23T06:05:19.006614+00:00",
   "start_month": "2024-05",
   "latest_month": "2026-09",
   "latest_date": "2026-09-01",
@@ -7,7 +7,7 @@
   "m2_yoy_pct": 7.231223235892781,
   "m1_m2_growth_gap_pct": -4.039866287003946,
   "lowest_month": "2024-09",
-  "lowest_gap_pct": -14.24060003804628,
+  "lowest_gap_pct": -14.240600038046281,
   "highest_month": "2025-09",
   "highest_gap_pct": -1.1627390103725164,
   "points": 29,
