@@ -80,6 +80,23 @@ def build_message(summary: dict) -> tuple[str, str]:
     return title, "\n".join(lines)
 
 
+def send_notification(sendkey: str, title: str, body: str) -> None:
+    try:
+        response = requests.post(
+            f"https://sctapi.ftqq.com/{sendkey}.send",
+            data={"title": title, "desp": body},
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except (requests.RequestException, ValueError) as exc:
+        raise RuntimeError(f"方糖请求失败（{type(exc).__name__}）") from None
+    if payload.get("code") != 0:
+        raise RuntimeError(f"方糖推送失败（错误码 {payload.get('code')!r}）")
+
+    print("方糖推送成功。")
+
+
 def main():
     sendkey = os.getenv(SENDKEY_ENV_VAR, "").strip()
     if not sendkey:
@@ -87,20 +104,8 @@ def main():
         return
 
     summary = load_summary(SUMMARY_JSON)
-    title, desp = build_message(summary)
-
-    response = requests.post(
-        f"https://sctapi.ftqq.com/{sendkey}.send",
-        data={"title": title, "desp": desp},
-        timeout=30,
-    )
-    response.raise_for_status()
-
-    payload = response.json()
-    if payload.get("code") != 0:
-        raise RuntimeError(f"方糖推送失败: {payload}")
-
-    print("方糖推送成功。")
+    title, body = build_message(summary)
+    send_notification(sendkey, title, body)
 
 
 if __name__ == "__main__":
