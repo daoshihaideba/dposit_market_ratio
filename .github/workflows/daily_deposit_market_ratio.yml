@@ -10,7 +10,17 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: deposit-market-ratio-pages
+
 jobs:
+  build-news:
+    uses: ./.github/workflows/daily_news_digest.yml
+    permissions:
+      contents: read
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
   build-data:
     runs-on: ubuntu-latest
 
@@ -42,9 +52,6 @@ jobs:
       - name: Build unified M1-M2 chart
         run: python build_m1_m2_unified_chart.py
 
-      - name: Prepare GitHub Pages site
-        run: python build_pages_site.py
-
       - name: Commit generated files
         id: commit_generated
         run: |
@@ -59,6 +66,51 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Upload notify artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: notify-inputs
+          path: deposit_market_ratio_summary.json
+
+      - name: Prepare updated ratio site
+        run: python build_pages_site.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ratio-site
+          path: pages/
+          include-hidden-files: true
+
+  deploy-pages:
+    needs: [build-data, build-news]
+    if: ${{ !cancelled() && (needs.build-data.result == 'success' || needs.build-news.result == 'success') }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download updated ratio site
+        if: needs.build-data.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: ratio-site
+          path: pages
+
+      - name: Checkout existing ratio data
+        if: needs.build-data.result != 'success'
+        uses: actions/checkout@v4
+
+      - name: Prepare site from existing ratio data
+        if: needs.build-data.result != 'success'
+        run: python3 build_pages_site.py
+
+      - name: Add news images and links
+        if: needs.build-news.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: chinese-news-digest
+          path: pages/news
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
@@ -67,19 +119,6 @@ jobs:
         with:
           path: pages
 
-      - name: Upload notify artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: notify-inputs
-          path: deposit_market_ratio_summary.json
-
-  deploy-pages:
-    needs: build-data
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
@@ -88,6 +127,7 @@ jobs:
     needs:
       - build-data
       - deploy-pages
+    if: ${{ !cancelled() && needs.build-data.result == 'success' && needs.deploy-pages.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -114,3 +154,24 @@ jobs:
           FTQQ_SENDKEY: ${{ secrets.FTQQ_SENDKEY }}
           PAGES_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
         run: python notify_ftqq.py
+
+  notify-news:
+    needs: [build-news, deploy-pages]
+    if: ${{ !cancelled() && needs.build-news.result == 'success' && needs.deploy-pages.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: chinese-news-digest
+          path: news_preview
+      - name: Install dependencies
+        run: python -m pip install 'requests>=2.31' 'beautifulsoup4>=4.12' 'pillow>=10.3' 'opencc-python-reimplemented>=0.1.7'
+      - name: Push news images to Server酱
+        env:
+          FTQQ_SENDKEY: ${{ secrets.FTQQ_SENDKEY }}
+          PAGES_BASE_URL: ${{ needs.deploy-pages.outputs.page_url }}
+        run: python news_digest.py --send

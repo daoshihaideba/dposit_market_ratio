@@ -34,18 +34,19 @@ python notify_ftqq.py
 
 ## 24 小时新闻日报
 
-GitHub Actions 的 **Daily News Digest** 每天北京时间 09:25 计划运行，复用仓库的
-`FTQQ_SENDKEY`。它会独立发送一条方糖消息，包含中国和国际头条（最多 10 条）、全球芯片与半导体新闻、
-中国半导体新闻。每条中国半导体新闻都附有对 159516 的影响方向和理由，依据设备订单、
-材料需求、国产替代等传导。每条新闻含发布时间和来源链接。
+每天北京时间 09:10，**Daily Deposit Market Ratio** 同时生成存市比日报和新闻日报，
+将两份内容一起发布到 GitHub Pages，再用仓库的 `FTQQ_SENDKEY` 分别发送两条方糖消息。
+新闻推送内嵌三张简体中文长图，分别是国内外要闻（最多 10 条）、全球芯片与半导体、
+中国半导体与 159516。中国半导体新闻逐条标注影响方向及理由。消息附有原图和新闻原文链接。
 
 可选的仓库 Secret `OPENAI_API_KEY` 用于中文标题、摘要、新闻排序和影响分析，模型默认为
-`gpt-4.1-mini`，可用仓库变量 `NEWS_OPENAI_MODEL` 指定。未配置或模型请求失败时，日报按公开 RSS
-的标题和可用摘要自动筛选，沿用原文标题并使用规则判断 159516 的方向。
+`gpt-4.1-mini`，可用仓库变量 `NEWS_OPENAI_MODEL` 指定。未配置或模型请求失败时，
+日报使用有中文标题的报道，统一转换为简体中文，按规则判断 159516 的方向。
 
-推送前可在 GitHub Actions 打开 **Daily News Digest → Run workflow**，保留默认勾选
-**只生成日报预览（不发方糖）**，在任务日志查看结果。取消勾选即实际发送。
-也可以用 `python news_digest.py --preview` 在本地预览。
+在 GitHub Actions 手动运行 **Daily News Digest** 可下载 `chinese-news-digest` 预览，
+其中有三张图片和原文链接页。手动运行 **Daily Deposit Market Ratio** 会发布并推送。
+在本地可以安装 `requirements.txt` 中的依赖后运行 `python news_digest.py --preview`，
+在 `news_preview/` 查看结果。Linux 上需要安装 Noto Sans CJK 中文字体。
 
 ## 产物文件
 

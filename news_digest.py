@@ -2,18 +2,22 @@ import argparse
 import json
 import os
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from difflib import SequenceMatcher
 from email.utils import parsedate_to_datetime
+from pathlib import Path
 from urllib.parse import urlencode, urlsplit
 from xml.etree import ElementTree
 from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
+from opencc import OpenCC
 
+from news_images import IMAGE_NAMES, write_news_pages
 from notify_ftqq import SENDKEY_ENV_VAR, send_notification
 
 
@@ -22,6 +26,24 @@ LIMITS = {"头条": 10, "全球半导体": 6, "中国半导体": 6}
 SECTION_NAMES = {"头条": "过去 24 小时十大新闻", "全球半导体": "全球芯片与半导体", "中国半导体": "中国半导体与 159516"}
 IMPACTS = {"偏正向", "偏负向", "中性", "多空交织", "待确认"}
 FUND_LINK = "https://fundf10.eastmoney.com/jbgk_159516.html"
+SIMPLIFIED = OpenCC("t2s")
+HAN = re.compile(r"[\u3400-\u9fff]")
+LATIN = re.compile(r"[A-Za-z]")
+SOURCE_NAMES = {
+    "BBC中文": "英国广播公司中文网", "BBC国际": "英国广播公司",
+    "DW中文": "德国之声", "Reuters": "路透社", "AP News": "美联社",
+    "ThePaper.cn": "澎湃新闻", "Sohu": "搜狐",
+}
+
+
+def chinese_text(value: str) -> str:
+    value = SIMPLIFIED.convert(" ".join(value.split()))
+    han_count = len(HAN.findall(value))
+    return value if han_count >= 2 and han_count * 3 >= len(LATIN.findall(value)) else ""
+
+
+def display_source(source: str) -> str:
+    return SOURCE_NAMES.get(source) or chinese_text(source) or "原始报道"
 
 
 def google_news(query: str, *, chinese: bool = True) -> str:
@@ -38,6 +60,7 @@ FEEDS = {
         "BBC国际": "https://feeds.bbci.co.uk/news/world/rss.xml",
         "央视新闻": google_news("site:news.cctv.com"),
         "国内要闻": google_news("site:news.cn OR site:chinanews.com.cn"),
+        "国际新闻（中文）": google_news("site:news.cn 国际 OR site:chinanews.com.cn 国际 OR site:cn.nytimes.com"),
         "国际要闻": google_news("site:reuters.com OR site:apnews.com", chinese=False),
     },
     "全球半导体": {
@@ -54,7 +77,7 @@ CHIP = re.compile(r"半导体|半導體|芯片|晶片|晶圆|晶圓|光刻机|�
 CHINA = re.compile(
     r"中国|中國|国内|國內|国产|國產|大陆|大陸|中芯|华虹|華虹|北方华创|北方華創|中微公司|拓荆|拓荊|"
     r"长江存储|長江存儲|盛美上海|华海清科|華海清科|沪硅|滬矽|安集科技|南大光电|南大光電|"
-    r"华为|華為|兆易创新|兆易創新|寒武纪|寒武紀|海光|源杰科技|159516|\bChina\b|Chinese|\bSMIC\b|\bHuawei\b",
+    r"华为|華為|兆易创新|兆易創新|寒武纪|寒武紀|海光|源杰科技|全省首家|159516|\bChina\b|Chinese|\bSMIC\b|\bHuawei\b",
     re.I,
 )
 IMPORTANCE = (
@@ -224,7 +247,8 @@ MODEL_INSTRUCTIONS = """你编辑一份中文新闻日报。输入是来自 RSS 
 同一事件若已在中国半导体栏收录，全球行业栏优先选其他事件。头条选具有广泛影响的中国和国际
 要闻，最多10条，按影响排序。全球半导体和中国半导体各最多6条，优先选政策、供应链、
 资本开支、技术量产、订单及主要公司财报，剔除营销、简单涨跌播报和低相关内容。
-每条写中文标题和一句事实摘要。未证实的消息注明来源和不确定性。159516是国泰中证半导体
+每条用简体中文写标题和一句事实摘要，翻译英文报道的正文和人名，使用常见的中文机构和企业名，
+可以保留 ASML 等业内常用专名和缩写。摘要尽量不超过 55 字。未证实的消息注明来源和不确定性。159516是国泰中证半导体
 材料设备主题ETF。中国半导体栏逐条给出 偏正向、偏负向、中性、多空交织 或 待确认，
 说明通过设备订单、材料需求、扩产、供应限制或国产替代等传导，也允许说明暂无直接传导，
 资料不足用待确认。不要推测最新持仓、权重或涨跌幅，不能仅凭股价或行业热度给方向。
@@ -274,8 +298,11 @@ def model_report(candidates: dict[str, list[Article]], api_key: str) -> dict:
                 if row["impact"] not in IMPACTS:
                     raise ValueError("ETF 方向无效")
                 fields.append("reason")
-            if not all(isinstance(row[field], str) and row[field].strip() for field in fields):
-                raise ValueError("新闻文本为空")
+            for field in fields:
+                value = row[field]
+                if not isinstance(value, str) or not (value := chinese_text(value)):
+                    raise ValueError("新闻文本须为中文")
+                row[field] = value
     return report
 
 
@@ -283,69 +310,94 @@ def rule_report(candidates: dict[str, list[Article]]) -> dict:
     report = {}
     for category, articles in candidates.items():
         rows = []
+        deferred = []
         source_counts = {}
         for index, article in enumerate(articles, 1):
             if len(rows) == LIMITS[category]:
                 break
             source = article.source.casefold()
-            if category == "头条" and source_counts.get(source, 0) >= 3:
+            title = chinese_text(article.title)
+            if not title:
                 continue
-            source_counts[source] = source_counts.get(source, 0) + 1
-            row = {"id": index, "title": article.title, "summary": article.summary}
+            row = {"id": index, "title": title, "summary": chinese_text(article.summary)}
             if category == "中国半导体":
                 row["impact"], row["reason"] = assess_etf(article)
+            if category == "头条" and source_counts.get(source, 0) >= 3:
+                deferred.append(row)
+                continue
+            source_counts[source] = source_counts.get(source, 0) + 1
             rows.append(row)
-        report[category] = rows
+        report[category] = rows + deferred[:LIMITS[category] - len(rows)]
     return report
 
 
-def markdown_text(value: str, limit: int = 240) -> str:
-    value = " ".join(value.split())
-    if len(value) > limit:
-        value = value[:limit - 1].rstrip() + "…"
-    return re.sub(r"([\\`*_\[\]<>])", r"\\\1", value)
-
-
-def render_digest(start: datetime, end: datetime, candidates: dict, report: dict,
-                  unavailable: list[str], used_model: bool) -> tuple[str, str]:
+def prepare_digest(start: datetime, end: datetime, candidates: dict, report: dict,
+                   unavailable: list[str], used_model: bool) -> tuple[dict, list]:
     start = start.astimezone(SHANGHAI)
     end = end.astimezone(SHANGHAI)
-    title = f"24小时新闻｜半导体与159516｜{end:%m-%d}"
-    lines = [f"北京时间 {start:%m-%d %H:%M} 至 {end:%m-%d %H:%M}"]
+    title = f"新闻日报｜{end:%m月%d日}"
+    period = f"北京时间 {start:%m月%d日 %H:%M} 至 {end:%m月%d日 %H:%M}"
+    notes = []
     if unavailable:
-        lines.extend(["", "暂不可用的新闻源：" + "、".join(unavailable)])
+        notes.append("暂不可用的新闻源：" + "、".join(display_source(name) for name in unavailable))
     if not used_model:
-        lines.extend(["", "本期按来源标题、摘要和关键词筛选。ETF 方向为规则初判。"])
+        notes.append("本期采用中文来源，基金影响为规则初判。")
 
-    for category in SECTION_NAMES:
-        rows = report[category]
-        lines.extend(["", f"## {SECTION_NAMES[category]}"])
-        if category == "中国半导体":
-            lines.extend(["", f"[159516 跟踪中证半导体材料设备主题指数]({FUND_LINK})"])
-        if not rows:
-            lines.extend(["", "本期来源范围内暂无符合筛选条件的新闻。"])
-        elif category == "头条" and len(rows) < LIMITS[category]:
-            lines.extend(["", f"本期筛到 {len(rows)} 条。"])
-        for position, row in enumerate(rows, 1):
+    sections = []
+    for category, heading in SECTION_NAMES.items():
+        items = []
+        for row in report[category]:
             article = candidates[category][row["id"] - 1]
             date = article.published.astimezone(SHANGHAI)
-            link = article.url.replace("<", "%3C").replace(">", "%3E").replace("\\", "%5C")
-            lines.extend(["", f"**{position}. {markdown_text(row['title'], 125)}**"])
-            if row["summary"]:
-                lines.extend(["", markdown_text(row["summary"], 125)])
-            if category == "中国半导体":
-                lines.extend(["", f"**159516 {row['impact']}**。{markdown_text(row['reason'], 100)}"])
-            lines.extend(["", f"[{markdown_text(article.source, 40)} {date:%m-%d %H:%M}](<{link}>)"])
-    return title, "\n".join(lines)
+            items.append({**row, "source": f"{display_source(article.source)} · {date:%m月%d日 %H:%M}",
+                          "url": article.url})
+        sections.append({
+            "title": heading, "image": IMAGE_NAMES[category], "items": items,
+            "subtitle": "追踪中证半导体材料设备主题指数" if category == "中国半导体" else "",
+        })
+
+    return {"title": title, "period": period, "notes": notes, "edition": end.strftime("%Y%m%d%H%M%S")}, sections
+
+
+def send_published_digest(output_dir: Path, base_url: str, sendkey: str) -> None:
+    metadata = json.loads((output_dir / "edition.json").read_text(encoding="utf-8"))
+    version = metadata["edition"]
+    prefix = f"{base_url}/news"
+    for attempt in range(5):
+        if attempt:
+            time.sleep(6)
+        try:
+            published = requests.get(f"{prefix}/edition.json?v={version}", timeout=10)
+            published.raise_for_status()
+            if published.json() == metadata:
+                break
+        except (requests.RequestException, ValueError):
+            pass
+    else:
+        raise RuntimeError("GitHub Pages 尚未提供本期日报，未发送推送")
+
+    lines = [metadata["period"]]
+    for category, image_name in IMAGE_NAMES.items():
+        heading = SECTION_NAMES[category]
+        image_url = f"{prefix}/{image_name}?v={version}"
+        lines.extend(["", f"![{heading}]({image_url})", "", f"[打开{heading}原图]({image_url})"])
+    lines.extend(["", f"[查看新闻原文链接]({prefix}/?v={version})"])
+    send_notification(sendkey, metadata["title"], "\n".join(lines))
 
 
 def main():
-    parser = argparse.ArgumentParser(description="生成 24 小时新闻日报并推送到方糖")
-    parser.add_argument("--preview", action="store_true", help="输出 Markdown 预览")
+    parser = argparse.ArgumentParser(description="生成中文新闻长图及原文链接页，或发送已发布的日报")
+    parser.add_argument("--preview", action="store_true", help="仅生成本地预览")
+    parser.add_argument("--output-dir", type=Path, default=Path("news_preview"), help="输出目录")
+    parser.add_argument("--send", action="store_true", help="发送已发布的日报")
     args = parser.parse_args()
-    sendkey = os.getenv(SENDKEY_ENV_VAR, "").strip()
-    if not args.preview and not sendkey:
-        parser.error(f"推送需要设置 {SENDKEY_ENV_VAR}，预览可使用 --preview")
+    if args.send:
+        sendkey = os.getenv(SENDKEY_ENV_VAR, "").strip()
+        base_url = os.getenv("PAGES_BASE_URL", "").rstrip("/")
+        if args.preview or not sendkey or urlsplit(base_url).scheme != "https":
+            parser.error(f"推送需要设置 {SENDKEY_ENV_VAR} 和 HTTPS 格式的 PAGES_BASE_URL")
+        send_published_digest(args.output_dir, base_url, sendkey)
+        return
 
     end = datetime.now(UTC)
     start = end - timedelta(hours=24)
@@ -357,11 +409,11 @@ def main():
             report = model_report(candidates, api_key)
         except (requests.RequestException, ValueError, KeyError, TypeError, IndexError) as exc:
             print(f"模型整理暂不可用（{type(exc).__name__}），改用规则整理。")
-    title, body = render_digest(start, end, candidates, report or rule_report(candidates), unavailable, report is not None)
-    if args.preview:
-        print(f"# {title}\n\n{body}")
-    else:
-        send_notification(sendkey, title, body)
+    metadata, sections = prepare_digest(
+        start, end, candidates, report or rule_report(candidates), unavailable, report is not None,
+    )
+    write_news_pages(args.output_dir, metadata, sections, FUND_LINK)
+    print(f"已生成新闻长图和原文链接页：{args.output_dir}")
 
 
 if __name__ == "__main__":
