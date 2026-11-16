@@ -1,4 +1,4 @@
-name: Daily News Digest
+name: Daily News Digest (Preview Only)
 
 on:
   workflow_call:

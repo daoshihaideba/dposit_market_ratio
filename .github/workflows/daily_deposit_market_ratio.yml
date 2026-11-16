@@ -2,6 +2,11 @@ name: Daily Deposit Market Ratio
 
 on:
   workflow_dispatch:
+    inputs:
+      news_only:
+        description: "只发布并推送新闻日报"
+        type: boolean
+        default: false
   schedule:
     - cron: "10 1 * * *"
 
@@ -22,6 +27,7 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
   build-data:
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.news_only }}
     runs-on: ubuntu-latest
 
     steps:
@@ -85,6 +91,8 @@ jobs:
     needs: [build-data, build-news]
     if: ${{ !cancelled() && (needs.build-data.result == 'success' || needs.build-news.result == 'success') }}
     runs-on: ubuntu-latest
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

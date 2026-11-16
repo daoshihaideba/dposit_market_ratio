@@ -43,8 +43,10 @@ python notify_ftqq.py
 `gpt-4.1-mini`，可用仓库变量 `NEWS_OPENAI_MODEL` 指定。未配置或模型请求失败时，
 日报使用有中文标题的报道，统一转换为简体中文，按规则判断 159516 的方向。
 
-在 GitHub Actions 手动运行 **Daily News Digest** 可下载 `chinese-news-digest` 预览，
-其中有三张图片和原文链接页。手动运行 **Daily Deposit Market Ratio** 会发布并推送。
+在 GitHub Actions 手动运行 **Daily News Digest (Preview Only)** 可下载
+`chinese-news-digest` 预览，其中有三张图片和原文链接页。
+在 **Daily Deposit Market Ratio → Run workflow** 勾选 **只发布并推送新闻日报**
+可单独发送新闻。默认会生成并发送两份日报。
 在本地可以安装 `requirements.txt` 中的依赖后运行 `python news_digest.py --preview`，
 在 `news_preview/` 查看结果。Linux 上需要安装 Noto Sans CJK 中文字体。
 
